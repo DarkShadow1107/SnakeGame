@@ -10,7 +10,7 @@ Snake Game is a modern, feature-rich version of the classic Snake game. Guide yo
 
 ## How to Install
 
-To install the game, run the installer located at: Application Files/SnakeGame.application.
+To install the game, run the installer located at: Application Files/SnakeGame_1_0_0_1/SnakeGame.application.
 
 Follow the on-screen instructions to complete the installation.
 
