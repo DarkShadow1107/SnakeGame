@@ -77,4 +77,8 @@ namespace SnakeGame
             };
         }
     }
+
+    // When calling Level.GetLevel, pass useBorderWalls = true for wall themes and for levels 2, 4, 5, 8, 9, 10.
+    // For example:
+    // Level.GetLevel(levelNumber, isWallThemeActive);
 }

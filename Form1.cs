@@ -30,6 +30,7 @@ namespace SnakeGame
         private int direction = 0; // 0=Right, 1=Down, 2=Left, 3=Up
         private int nextDirection = 0;
         private int score = 0;
+        private int startingLevel = 1; // Track the level the player started from
         private bool gameOver = false;
         private Timer timer;
         private Random rand = new Random();
@@ -86,6 +87,7 @@ namespace SnakeGame
                 if (menu.ShowDialog() == DialogResult.OK)
                 {
                     currentLevel = menu.SelectedLevel;
+                    startingLevel = currentLevel; // Save the starting level
                     currentTheme = menu.SelectedTheme;
                 }
             }
@@ -105,11 +107,54 @@ namespace SnakeGame
         private void StartGame()
         {
             snake = new List<Point>();
-            for (int i = InitialSnakeLength - 1; i >= 0; i--)
-                snake.Add(new Point(i + 5, GridHeight / 2));
-            direction = 0;
-            nextDirection = 0;
-            score = 0;
+            // --- Custom snake start for level 8: vertical, from top to bottom ---
+            if (currentLevel == 8)
+            {
+                for (int i = InitialSnakeLength - 1; i >= 0; i--)
+                    snake.Add(new Point(GridWidth / 2, i + 2)); // Centered horizontally, starts at y=2
+                direction = 1; // Down
+                nextDirection = 1;
+            }
+            // --- Custom snake start for level 4, 6, 7: lower (closer to bottom) ---
+            else if (currentLevel == 4)
+            {
+                // Horizontal, near bottom
+                int y = GridHeight - 4;
+                for (int i = InitialSnakeLength - 1; i >= 0; i--)
+                    snake.Add(new Point(i + 5, y));
+                direction = 0; // Right
+                nextDirection = 0;
+            }
+            else if (currentLevel == 6)
+            {
+                // Horizontal, near bottom
+                int y = GridHeight - 3;
+                for (int i = InitialSnakeLength - 1; i >= 0; i--)
+                    snake.Add(new Point(i + 5, y));
+                direction = 0; // Right
+                nextDirection = 0;
+            }
+            else if (currentLevel == 7)
+            {
+                // Horizontal, near bottom
+                int y = GridHeight - 5;
+                for (int i = InitialSnakeLength - 1; i >= 0; i--)
+                    snake.Add(new Point(i + 5, y));
+                direction = 0; // Right
+                nextDirection = 0;
+            }
+            else
+            {
+                for (int i = InitialSnakeLength - 1; i >= 0; i--)
+                    snake.Add(new Point(i + 5, GridHeight / 2));
+                direction = 0;
+                nextDirection = 0;
+            }
+
+            // Only reset score if starting a new run (i.e., not advancing to next level)
+            if (currentLevel == startingLevel)
+                score = 0;
+
             gameOver = false;
             specialFood = null;
             specialFoodTimer = 0;
@@ -122,9 +167,28 @@ namespace SnakeGame
             foodsToNextLevel = 8 + currentLevel * 2;
             foodsEatenThisLevel = 0;
 
-            levelData = Level.GetLevel(currentLevel);
+            // --- Determine if border walls should be used for this level and theme ---
+            bool useBorderWalls = false;
+            if (currentTheme.HasWalls)
+            {
+                // Levels that should use border walls with wall themes
+                if (currentLevel == 2 || currentLevel == 4 || currentLevel == 5 ||
+                    currentLevel == 8 || currentLevel == 9 || currentLevel == 10)
+                {
+                    useBorderWalls = true;
+                }
+                // Level 1 and default already have border walls by default
+            }
+
+            levelData = Level.GetLevel(currentLevel, useBorderWalls);
+
             obstacles = levelData.Obstacles.Select(r => new Obstacle(r)).ToList();
-            wallCells = (currentTheme.HasWalls && levelData.Walls != null) ? new List<Point>(levelData.Walls) : new List<Point>();
+
+            // For level 3, always use no border walls (loop logic), even for wall themes
+            if (currentLevel == 3)
+                wallCells = new List<Point>();
+            else
+                wallCells = (currentTheme.HasWalls && levelData.Walls != null) ? new List<Point>(levelData.Walls) : new List<Point>();
 
             SpawnFood();
             SpawnPowerUp();
@@ -149,6 +213,7 @@ namespace SnakeGame
                     newTheme = allThemes[themeRand.Next(allThemes.Length)];
                 } while (newTheme == currentTheme && allThemes.Length > 1);
                 currentTheme = newTheme;
+                // Do NOT reset score here; it should accumulate
                 StartGame();
             }
             else
@@ -160,6 +225,7 @@ namespace SnakeGame
                     if (menu.ShowDialog() == DialogResult.OK)
                     {
                         currentLevel = menu.SelectedLevel;
+                        startingLevel = currentLevel; // Reset starting level
                         currentTheme = menu.SelectedTheme;
                         StartGame();
                     }
@@ -185,7 +251,15 @@ namespace SnakeGame
                 case 3: newHead.Y -= 1; break;
             }
 
-            if (!currentTheme.HasWalls)
+            // --- Always use looping logic for level 3, regardless of theme ---
+            if (currentLevel == 3)
+            {
+                if (newHead.X < 0) newHead.X = GridWidth - 1;
+                if (newHead.X >= GridWidth) newHead.X = 0;
+                if (newHead.Y < 0) newHead.Y = GridHeight - 1;
+                if (newHead.Y >= GridHeight) newHead.Y = 0;
+            }
+            else if (!currentTheme.HasWalls)
             {
                 if (newHead.X < 0) newHead.X = GridWidth - 1;
                 if (newHead.X >= GridWidth) newHead.X = 0;
@@ -222,7 +296,9 @@ namespace SnakeGame
 
             if (newHead == food)
             {
-                score += 10 * (activePowerUp == PowerUpType.ScoreMultiplier ? 2 : 1);
+                // Score for food: (currentLevel * 10), doubled if ScoreMultiplier is active
+                int foodScore = currentLevel * 10 * (activePowerUp == PowerUpType.ScoreMultiplier ? 2 : 1);
+                score += foodScore;
                 foodsEatenThisLevel++;
                 SpawnFood();
                 SoundManager.PlayEat();
@@ -584,6 +660,7 @@ namespace SnakeGame
                     if (menu.ShowDialog() == DialogResult.OK)
                     {
                         currentLevel = menu.SelectedLevel;
+                        startingLevel = currentLevel; // Reset starting level
                         currentTheme = menu.SelectedTheme;
                         StartGame();
                     }
