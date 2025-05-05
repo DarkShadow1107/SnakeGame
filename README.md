@@ -10,7 +10,9 @@ Snake Game is a modern, feature-rich version of the classic Snake game. Guide yo
 
 ## How to Install
 
-To install the game, run the installer: setup.exe
+To install the game, run the installer: setup.exe; or here: SnakeGame\bin\Release\app.publish/setup.exe
+
+If unable to install the game, you can find the executable here: SnakeGame/bin/Release/SnakeGame.exe
 
 Follow the on-screen instructions to complete the installation.
 
