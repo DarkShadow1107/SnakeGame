@@ -1,4 +1,7 @@
 ﻿using System;
+// ...other using statements...
+using SnakeGame; // Ensure this is present
+// ...rest of the file remains unchanged...
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -8,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Media;
 using System.Reflection;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -20,7 +24,7 @@ namespace SnakeGame
         private const int CellSize = 28; // was 32
         private const int GridWidth = 36; // was 40
         private const int GridHeight = 24; // was 28
-        private const int InitialSnakeLength = 6;
+        private const int InitialSnakeLength = 3; // was 6, now shorter for all levels/themes
         private const int GameSpeed = 60; // ms per tick
 
         // --- Game state ---
@@ -54,9 +58,20 @@ namespace SnakeGame
         private bool paused = false;
         private List<Point> wallCells = new List<Point>(); // Store wall cells for current level
 
+        private int scoreAtLevelStart = 0; // Store the score at the beginning of each level
+
         // --- Graphics ---
         private BufferedGraphicsContext context;
         private BufferedGraphics buffer;
+
+        // --- Countdown state ---
+        private int resumeCountdown = 0;
+        private Timer resumeCountdownTimer;
+        private string resumeCountdownText = "";
+        private bool isLevelCountdown = false; // Add this flag to distinguish between level and resume countdown
+
+        // Add a static flag to track if a game has been started since launch
+        private static bool hasStartedGame = false;
 
         public Form1()
         {
@@ -94,6 +109,7 @@ namespace SnakeGame
 
             HighScoreManager.Load();
             StartGame();
+            hasStartedGame = true; // Set flag after first game start
         }
 
         private int GetGameSpeedForLevel(int level)
@@ -107,28 +123,49 @@ namespace SnakeGame
         private void StartGame()
         {
             snake = new List<Point>();
+            // --- Level 6: vertical snake, head at bottom, tail at top, going up, X away from wall ---
+            if (currentLevel == 6)
+            {
+                int startX = 3; // Start a few cells away from the left wall
+                int startY = 3;
+                
+                // Tail at top, head at bottom
+                for (int i = 0; i < InitialSnakeLength; i++)
+                    snake.Add(new Point(startX, startY + i));
+                direction = 3; // Up
+                nextDirection = 3;
+            }
+            // --- Level 7: vertical snake, head at bottom, tail at top, going down, X away from wall, with full loop ---
+            else if (currentLevel == 7)
+            {
+                int startX = 11;
+                int startY = 6;
+                for (int i = 0; i < InitialSnakeLength; i++)
+                    snake.Add(new Point(startX, startY + i));
+                direction = 3; // Down
+                nextDirection = 3;
+            }
             // --- Custom snake start for level 8: vertical, from top to bottom ---
-            if (currentLevel == 8)
+            else if (currentLevel == 8)
             {
                 for (int i = InitialSnakeLength - 1; i >= 0; i--)
                     snake.Add(new Point(GridWidth / 2, i + 2)); // Centered horizontally, starts at y=2
                 direction = 1; // Down
                 nextDirection = 1;
             }
-            // --- Custom snake start for level 4, 6, 7: lower (closer to bottom) ---
-            else if (currentLevel == 4)
+            // --- Custom snake start for level 2 and 5: lower (closer to bottom) ---
+            else if (currentLevel == 2 || currentLevel == 5)
             {
-                // Horizontal, near bottom
                 int y = GridHeight - 4;
                 for (int i = InitialSnakeLength - 1; i >= 0; i--)
                     snake.Add(new Point(i + 5, y));
                 direction = 0; // Right
                 nextDirection = 0;
             }
-            else if (currentLevel == 6)
+            // --- Custom snake start for level 4, 7: lower (closer to bottom) ---
+            else if (currentLevel == 4)
             {
-                // Horizontal, near bottom
-                int y = GridHeight - 3;
+                int y = GridHeight - 4;
                 for (int i = InitialSnakeLength - 1; i >= 0; i--)
                     snake.Add(new Point(i + 5, y));
                 direction = 0; // Right
@@ -136,7 +173,6 @@ namespace SnakeGame
             }
             else if (currentLevel == 7)
             {
-                // Horizontal, near bottom
                 int y = GridHeight - 5;
                 for (int i = InitialSnakeLength - 1; i >= 0; i--)
                     snake.Add(new Point(i + 5, y));
@@ -151,9 +187,68 @@ namespace SnakeGame
                 nextDirection = 0;
             }
 
+            // --- Safeguard: Ensure snake is not initialized on a wall cell for any level ---
+            if (currentTheme != null && currentTheme.HasWalls && wallCells != null && wallCells.Count > 0)
+            {
+                bool overlaps = snake.Any(pt => wallCells.Contains(pt));
+                if (overlaps)
+                {
+                    // Try to find a safe Y row for horizontal snakes, or X for vertical
+                    if (direction == 0 || direction == 2) // Horizontal
+                    {
+                        for (int tryY = 1; tryY < GridHeight - 1; tryY++)
+                        {
+                            bool collision = false;
+                            for (int i = 0; i < InitialSnakeLength; i++)
+                            {
+                                Point pt = new Point(i + 5, tryY);
+                                if (wallCells.Contains(pt))
+                                {
+                                    collision = true;
+                                    break;
+                                }
+                            }
+                            if (!collision)
+                            {
+                                snake.Clear();
+                                for (int i = InitialSnakeLength - 1; i >= 0; i--)
+                                    snake.Add(new Point(i + 5, tryY));
+                                break;
+                            }
+                        }
+                    }
+                    else // Vertical
+                    {
+                        for (int tryX = 1; tryX < GridWidth - 1; tryX++)
+                        {
+                            bool collision = false;
+                            for (int i = 0; i < InitialSnakeLength; i++)
+                            {
+                                Point pt = new Point(tryX, i + 2);
+                                if (wallCells.Contains(pt))
+                                {
+                                    collision = true;
+                                    break;
+                                }
+                            }
+                            if (!collision)
+                            {
+                                snake.Clear();
+                                for (int i = InitialSnakeLength - 1; i >= 0; i--)
+                                    snake.Add(new Point(tryX, i + 2));
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
             // Only reset score if starting a new run (i.e., not advancing to next level)
             if (currentLevel == startingLevel)
                 score = 0;
+
+            // Store the score at the start of the level for resume/restart
+            scoreAtLevelStart = score;
 
             gameOver = false;
             specialFood = null;
@@ -173,7 +268,7 @@ namespace SnakeGame
             {
                 // Levels that should use border walls with wall themes
                 if (currentLevel == 2 || currentLevel == 4 || currentLevel == 5 ||
-                    currentLevel == 8 || currentLevel == 9 || currentLevel == 10)
+                    currentLevel == 6 || currentLevel == 8 || currentLevel == 9 || currentLevel == 10)
                 {
                     useBorderWalls = true;
                 }
@@ -198,8 +293,48 @@ namespace SnakeGame
             timer = new Timer();
             timer.Interval = GetGameSpeedForLevel(currentLevel);
             timer.Tick += GameTick;
-            timer.Start();
+            // Do not start timer here!
+            // timer.Start();
             SoundManager.PlayBackgroundMusic();
+            hasStartedGame = true;
+
+            // Start the level countdown
+            StartLevelCountdown();
+        }
+
+        private void StartLevelCountdown()
+        {
+            isLevelCountdown = true;
+            resumeCountdown = 3;
+            resumeCountdownText = "3";
+            paused = true;
+            timer?.Stop();
+
+            if (resumeCountdownTimer != null)
+            {
+                resumeCountdownTimer.Stop();
+                resumeCountdownTimer.Dispose();
+            }
+            resumeCountdownTimer = new Timer();
+            resumeCountdownTimer.Interval = 1000;
+            resumeCountdownTimer.Tick += (s, e) =>
+            {
+                resumeCountdown--;
+                if (resumeCountdown == 2) resumeCountdownText = "2";
+                else if (resumeCountdown == 1) resumeCountdownText = "1";
+                else if (resumeCountdown == 0) resumeCountdownText = "Start";
+                else if (resumeCountdown < 0)
+                {
+                    resumeCountdownTimer.Stop();
+                    resumeCountdownText = "";
+                    paused = false;
+                    isLevelCountdown = false;
+                    timer?.Start();
+                }
+                Invalidate();
+            };
+            resumeCountdownTimer.Start();
+            Invalidate();
         }
 
         private void NextLevel()
@@ -253,6 +388,22 @@ namespace SnakeGame
 
             // --- Always use looping logic for level 3, regardless of theme ---
             if (currentLevel == 3)
+            {
+                if (newHead.X < 0) newHead.X = GridWidth - 1;
+                if (newHead.X >= GridWidth) newHead.X = 0;
+                if (newHead.Y < 0) newHead.Y = GridHeight - 1;
+                if (newHead.Y >= GridHeight) newHead.Y = 0;
+            }
+            // --- Level 6: loop on all edges (left, right, top, bottom), all themes ---
+            else if (currentLevel == 6)
+            {
+                if (newHead.X < 0) newHead.X = GridWidth - 1;
+                if (newHead.X >= GridWidth) newHead.X = 0;
+                if (newHead.Y < 0) newHead.Y = GridHeight - 1;
+                if (newHead.Y >= GridHeight) newHead.Y = 0;
+            }
+            // --- Level 7: loop on all edges (left, right, top, bottom), all themes ---
+            else if (currentLevel == 7)
             {
                 if (newHead.X < 0) newHead.X = GridWidth - 1;
                 if (newHead.X >= GridWidth) newHead.X = 0;
@@ -408,6 +559,26 @@ namespace SnakeGame
         {
             DrawGame(buffer.Graphics);
             buffer.Render(e.Graphics);
+
+            // Draw countdown overlay if active (for both level and resume countdowns)
+            if (resumeCountdown > 0 || resumeCountdownText == "Start")
+            {
+                using (var font = new Font("Segoe UI", resumeCountdownText == "Start" ? 36 : 48, FontStyle.Bold))
+                using (var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
+                {
+                    var rect = new Rectangle(0, 0, ClientSize.Width, ClientSize.Height);
+                    e.Graphics.DrawString(resumeCountdownText, font, Brushes.Yellow, rect, sf);
+                }
+            }
+            else if (paused)
+            {
+                using (var font = new Font("Segoe UI", 32, FontStyle.Bold))
+                using (var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
+                {
+                    var rect = new Rectangle(0, 0, ClientSize.Width, ClientSize.Height);
+                    e.Graphics.DrawString("Paused", font, Brushes.Yellow, rect, sf);
+                }
+            }
         }
 
         private void DrawGame(Graphics g)
@@ -563,16 +734,6 @@ namespace SnakeGame
                     g.DrawString(msg, font, Brushes.Red, rect, sf);
                 }
             }
-
-            if (paused)
-            {
-                using (var font = new Font("Segoe UI", 32, FontStyle.Bold))
-                using (var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
-                {
-                    var rect = new Rectangle(0, 0, ClientSize.Width, ClientSize.Height);
-                    g.DrawString("Paused", font, Brushes.Yellow, rect, sf);
-                }
-            }
         }
 
         private void DrawPowerUp(Graphics g, PowerUp pu)
@@ -643,37 +804,172 @@ namespace SnakeGame
         {
             if (gameOver && e.KeyCode == Keys.Enter)
             {
+                score = scoreAtLevelStart; // Reset score to the value at the start of the level
                 StartGame();
                 return;
             }
             if (e.KeyCode == Keys.P)
             {
                 paused = !paused;
+                if (paused) timer?.Stop(); else timer?.Start();
                 Invalidate();
                 return;
             }
             if (e.KeyCode == Keys.Escape)
             {
-                timer?.Stop();
-                using (var menu = new MenuForm())
+                if (!paused)
                 {
-                    if (menu.ShowDialog() == DialogResult.OK)
-                    {
-                        currentLevel = menu.SelectedLevel;
-                        startingLevel = currentLevel; // Reset starting level
-                        currentTheme = menu.SelectedTheme;
-                        StartGame();
-                    }
+                    paused = true;
+                    timer?.Stop();
+                    Invalidate();
+                    ShowMenu();
                 }
                 return;
             }
-            if (paused) return;
+            if (paused || resumeCountdown > 0 || isLevelCountdown) return; // Prevent input during pause/countdown
 
             // Arrow keys and WASD support
             if ((e.KeyCode == Keys.Right || e.KeyCode == Keys.D) && direction != 2) nextDirection = 0;
             else if ((e.KeyCode == Keys.Down || e.KeyCode == Keys.S) && direction != 3) nextDirection = 1;
             else if ((e.KeyCode == Keys.Left || e.KeyCode == Keys.A) && direction != 0) nextDirection = 2;
             else if ((e.KeyCode == Keys.Up || e.KeyCode == Keys.W) && direction != 1) nextDirection = 3;
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (keyData == Keys.Escape)
+            {
+                if (!paused)
+                {
+                    paused = true;
+                    timer?.Stop();
+                    Invalidate();
+                    ShowMenu();
+                }
+                return true;
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
+        private void ShowMenu()
+        {
+            using (var menu = new MenuForm())
+            {
+                // Only allow resume if a game has been started, the game is paused, and not over
+                menu.CanResume = hasStartedGame && paused && !gameOver;
+
+                var result = menu.ShowDialog();
+                if (result == DialogResult.Retry)
+                {
+                    // Resume: do NOT call LoadGame, do NOT change theme, just start countdown
+                    StartResumeCountdown();
+                }
+                else if (result == DialogResult.OK)
+                {
+                    // Start new game: this is the only place where theme/level changes
+                    StartNewGame(menu.SelectedLevel, menu.SelectedTheme);
+                }
+            }
+        }
+
+        private void StartResumeCountdown()
+        {
+            if (isLevelCountdown) return; // Don't start resume countdown if level countdown is running
+
+            resumeCountdown = 3;
+            resumeCountdownText = "3";
+            paused = true;
+            timer?.Stop();
+
+            if (resumeCountdownTimer != null)
+            {
+                resumeCountdownTimer.Stop();
+                resumeCountdownTimer.Dispose();
+            }
+            resumeCountdownTimer = new Timer();
+            resumeCountdownTimer.Interval = 1000;
+            resumeCountdownTimer.Tick += (s, e) =>
+            {
+                resumeCountdown--;
+                if (resumeCountdown == 2) resumeCountdownText = "2";
+                else if (resumeCountdown == 1) resumeCountdownText = "1";
+                else if (resumeCountdown == 0) resumeCountdownText = "Start";
+                else if (resumeCountdown < 0)
+                {
+                    resumeCountdownTimer.Stop();
+                    resumeCountdownText = "";
+                    paused = false;
+                    timer?.Start();
+                }
+                Invalidate();
+            };
+            resumeCountdownTimer.Start();
+            Invalidate();
+        }
+
+        private void SaveGame()
+        {
+            var state = new GameState
+            {
+                Level = this.currentLevel,
+                ThemeName = this.currentTheme?.Name,
+                Snake = this.snake.ToList(),
+                Food = this.food,
+                Score = this.score,
+                Direction = this.direction.ToString(),
+                Obstacles = this.obstacles?.Select(o => o.Area).ToList() ?? new List<Rectangle>(), // <-- convert to List<Rectangle>
+                Speed = this.timer.Interval
+                // Add other fields as needed
+            };
+            try
+            {
+                using (var fs = new FileStream("savegame.dat", FileMode.Create))
+                {
+                    var bf = new BinaryFormatter();
+                    bf.Serialize(fs, state);
+                }
+            }
+            catch { /* handle or log error if needed */ }
+        }
+
+        private bool LoadGame()
+        {
+            if (!File.Exists("savegame.dat"))
+                return false;
+            try
+            {
+                using (var fs = new FileStream("savegame.dat", FileMode.Open))
+                {
+                    var bf = new BinaryFormatter();
+                    var state = (GameState)bf.Deserialize(fs);
+
+                    // Restore state
+                    this.currentLevel = state.Level;
+                    this.currentTheme = Theme.GetThemes().FirstOrDefault(t => t.Name == state.ThemeName);
+                    this.snake = new List<Point>(state.Snake);
+                    this.food = state.Food;
+                    this.score = state.Score;
+                    this.direction = int.Parse(state.Direction);
+                    this.obstacles = state.Obstacles?.Select(r => new Obstacle(r)).ToList() ?? new List<Obstacle>(); // <-- convert to List<Obstacle>
+                    this.timer.Interval = state.Speed;
+                    // Restore other fields as needed
+
+                    // Redraw or refresh game as needed
+                }
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private void StartNewGame(int level, Theme theme)
+        {
+            currentLevel = level;
+            startingLevel = level;
+            currentTheme = theme;
+            StartGame();
         }
 
         protected override void OnResize(EventArgs e)
@@ -685,6 +981,12 @@ namespace SnakeGame
                 buffer = context.Allocate(this.CreateGraphics(), this.DisplayRectangle);
             }
             Invalidate();
+        }
+
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            base.OnFormClosed(e);
+            hasStartedGame = false;
         }
 
         private void Form1_Load(object sender, EventArgs e)

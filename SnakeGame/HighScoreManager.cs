@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using SnakeGame;
 
 namespace SnakeGame
 {
@@ -23,10 +24,8 @@ namespace SnakeGame
         public static void AddScore(int score)
         {
             scores.Add(score);
-            scores = scores.OrderByDescending(s => s).Take(10).ToList();
-            Save();
         }
 
-        public static IEnumerable<int> GetHighScores() => scores;
+        public static List<int> GetHighScores() => scores;
     }
 }

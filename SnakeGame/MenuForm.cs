@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows.Forms;
 using System.IO;
 using System.Reflection;
+using SnakeGame;
 
 namespace SnakeGame
 {
@@ -11,6 +12,10 @@ namespace SnakeGame
     {
         public int SelectedLevel { get; private set; } = 1;
         public Theme SelectedTheme { get; private set; }
+        public bool CanResume { get; set; } // Set this from Form1 before showing the menu
+
+        private Button resumeBtn;
+        private Button startGameButton;
 
         public MenuForm()
         {
@@ -22,6 +27,9 @@ namespace SnakeGame
             this.Width = 420;
             this.Height = 380;
             this.BackColor = Color.FromArgb(30, 30, 40);
+
+            this.KeyPreview = true; // Ensure the form receives key events
+            this.KeyDown += MenuForm_KeyDown;
 
             // Set the app icon at runtime (ensure snake.ico is in output directory)
             try
@@ -105,7 +113,7 @@ namespace SnakeGame
                 themeBox.Items.Add(t.Name);
             themeBox.SelectedIndex = 0;
 
-            var startBtn = new Button
+            startGameButton = new Button
             {
                 Text = "Start Game",
                 Left = 110,
@@ -117,9 +125,34 @@ namespace SnakeGame
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat
             };
-            startBtn.FlatAppearance.BorderSize = 0;
+            startGameButton.FlatAppearance.BorderSize = 0;
 
-            startBtn.Click += (s, e) =>
+            // --- Resume Button ---
+            resumeBtn = new Button
+            {
+                Text = "Resume",
+                Left = 110,
+                Top = 270,
+                Width = 200,
+                Height = 40,
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                BackColor = Color.DodgerBlue,
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Enabled = CanResume // Ensure it is only enabled if the game is paused
+            };
+            resumeBtn.FlatAppearance.BorderSize = 0;
+
+            resumeBtn.Click += (s, e) =>
+            {
+                // Set a property or flag to indicate resume was chosen
+                this.SelectedLevel = -1; // Example: -1 means resume (adjust as needed)
+                this.SelectedTheme = null;
+                this.DialogResult = DialogResult.Retry; // Use Retry to distinguish from OK
+                this.Close();
+            };
+
+            startGameButton.Click += (s, e) =>
             {
                 SelectedLevel = levelBox.SelectedIndex + 1;
                 SelectedTheme = themes[themeBox.SelectedIndex];
@@ -133,7 +166,8 @@ namespace SnakeGame
             this.Controls.Add(levelBox);
             this.Controls.Add(themeLabel);
             this.Controls.Add(themeBox);
-            this.Controls.Add(startBtn);
+            this.Controls.Add(startGameButton);
+            this.Controls.Add(resumeBtn); // <-- Add resume button
 
             title.BringToFront();
             highScoreLabel.BringToFront();
@@ -141,7 +175,28 @@ namespace SnakeGame
             levelBox.BringToFront();
             themeLabel.BringToFront();
             themeBox.BringToFront();
-            startBtn.BringToFront();
+            startGameButton.BringToFront();
+            resumeBtn.BringToFront(); // <-- Bring resume button to front
+
+            this.Load += MenuForm_Load; // Wire up the Load event
+        }
+
+        private void MenuForm_Load(object sender, EventArgs e)
+        {
+            // Enable/disable the Resume button based on CanResume property
+            resumeBtn.Enabled = CanResume;
+            // Optionally, hide if not allowed:
+            // resumeBtn.Visible = CanResume;
+        }
+
+        private void MenuForm_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                // Simulate Start Game button click
+                startGameButton.PerformClick();
+                e.Handled = true;
+            }
         }
     }
 }

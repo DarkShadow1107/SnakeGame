@@ -19,3 +19,17 @@ C:\Users\Alexandru Gabriel\Desktop\Clinical Death\Programming\C#\SnakeGame\Snake
 C:\Users\Alexandru Gabriel\Desktop\Clinical Death\Programming\C#\SnakeGame\SnakeGame\obj\Release\SnakeGame.csproj.CoreCompileInputs.cache
 C:\Users\Alexandru Gabriel\Desktop\Clinical Death\Programming\C#\SnakeGame\SnakeGame\obj\Release\SnakeGame.exe
 C:\Users\Alexandru Gabriel\Desktop\Clinical Death\Programming\C#\SnakeGame\SnakeGame\obj\Release\SnakeGame.pdb
+D:\C#\SnakeGame\SnakeGame\obj\Release\SnakeGame.csproj.AssemblyReference.cache
+D:\C#\SnakeGame\SnakeGame\obj\Release\SnakeGame.Form1.resources
+D:\C#\SnakeGame\SnakeGame\obj\Release\SnakeGame.Properties.Resources.resources
+D:\C#\SnakeGame\SnakeGame\obj\Release\SnakeGame.csproj.GenerateResource.cache
+D:\C#\SnakeGame\SnakeGame\obj\Release\SnakeGame.csproj.CoreCompileInputs.cache
+D:\C#\SnakeGame\SnakeGame\obj\Release\SnakeGame.exe
+D:\C#\SnakeGame\SnakeGame\obj\Release\SnakeGame.pdb
+D:\C#\SnakeGame\SnakeGame\bin\Release\SnakeGame.exe.config
+D:\C#\SnakeGame\SnakeGame\bin\Release\SnakeGame.exe.manifest
+D:\C#\SnakeGame\SnakeGame\bin\Release\SnakeGame.application
+D:\C#\SnakeGame\SnakeGame\bin\Release\SnakeGame.exe
+D:\C#\SnakeGame\SnakeGame\bin\Release\SnakeGame.pdb
+D:\C#\SnakeGame\SnakeGame\obj\Release\SnakeGame.exe.manifest
+D:\C#\SnakeGame\SnakeGame\obj\Release\SnakeGame.application

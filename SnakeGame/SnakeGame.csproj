@@ -13,7 +13,7 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
     <IsWebBootstrapper>false</IsWebBootstrapper>
-    <PublishUrl>C:\Users\Alexandru Gabriel\Desktop\Clinical Death\Programming\C#\Snake Game\</PublishUrl>
+    <PublishUrl>D:\C#\SnakeGame\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
     <UpdateEnabled>false</UpdateEnabled>
@@ -23,7 +23,7 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>2</ApplicationRevision>
+    <ApplicationRevision>3</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -74,30 +74,36 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="C:/Users/Alexandru Gabriel/Desktop/Clinical Death/Programming/C#/Snake Game/SnakeGame/\HighScoreManager.cs">
+    <Compile Include="D:/C#/SnakeGame/SnakeGame/\HighScoreManager.cs">
       <Link>HighScoreManager.cs</Link>
     </Compile>
-    <Compile Include="C:/Users/Alexandru Gabriel/Desktop/Clinical Death/Programming/C#/Snake Game/SnakeGame/\Level.cs">
+    <Compile Include="D:/C#/SnakeGame/SnakeGame/\Level.cs">
       <Link>Level.cs</Link>
     </Compile>
-    <Compile Include="C:/Users/Alexandru Gabriel/Desktop/Clinical Death/Programming/C#/Snake Game/SnakeGame/\MenuForm.cs">
+    <Compile Include="D:/C#/SnakeGame/SnakeGame/\MenuForm.cs">
       <Link>MenuForm.cs</Link>
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="C:/Users/Alexandru Gabriel/Desktop/Clinical Death/Programming/C#/Snake Game/SnakeGame/\Obstacle.cs">
+    <Compile Include="D:/C#/SnakeGame/SnakeGame/\Obstacle.cs">
       <Link>Obstacle.cs</Link>
     </Compile>
-    <Compile Include="C:/Users/Alexandru Gabriel/Desktop/Clinical Death/Programming/C#/Snake Game/SnakeGame/\Particle.cs">
+    <Compile Include="D:/C#/SnakeGame/SnakeGame/\Particle.cs">
       <Link>Particle.cs</Link>
     </Compile>
-    <Compile Include="C:/Users/Alexandru Gabriel/Desktop/Clinical Death/Programming/C#/Snake Game/SnakeGame/\PowerUp.cs">
+    <Compile Include="D:/C#/SnakeGame/SnakeGame/\PowerUp.cs">
       <Link>PowerUp.cs</Link>
     </Compile>
-    <Compile Include="C:/Users/Alexandru Gabriel/Desktop/Clinical Death/Programming/C#/Snake Game/SnakeGame/\SoundManager.cs">
+    <Compile Include="D:/C#/SnakeGame/SnakeGame/\SoundManager.cs">
       <Link>SoundManager.cs</Link>
     </Compile>
-    <Compile Include="C:/Users/Alexandru Gabriel/Desktop/Clinical Death/Programming/C#/Snake Game/SnakeGame/\Theme.cs">
+    <Compile Include="D:/C#/SnakeGame/SnakeGame/\Theme.cs">
       <Link>Theme.cs</Link>
+    </Compile>
+    <Compile Include="D:/C#/SnakeGame/SnakeGame/\GameState.cs">
+      <Link>GameState.cs</Link>
+    </Compile>
+    <Compile Include="D:/C#/SnakeGame/SnakeGame/\PowerUpType.cs">
+      <Link>PowerUpType.cs</Link>
     </Compile>
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>

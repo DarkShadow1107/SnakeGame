@@ -1,16 +1,17 @@
 using System;
 using System.Drawing;
+using SnakeGame;
 
 namespace SnakeGame
 {
     public class Particle
     {
-        public PointF Position;
-        public PointF Velocity;
-        public float Life;
-        public Color Color;
+        public PointF Position { get; set; }
+        public PointF Velocity { get; set; }
+        public int Life { get; set; }
+        public Color Color { get; set; }
 
-        public Particle(PointF pos, PointF vel, float life, Color color)
+        public Particle(PointF pos, PointF vel, int life, Color color)
         {
             Position = pos;
             Velocity = vel;
@@ -20,9 +21,8 @@ namespace SnakeGame
 
         public void Update()
         {
-            Position.X += Velocity.X;
-            Position.Y += Velocity.Y;
-            Life -= 1f;
+            Position = new PointF(Position.X + Velocity.X, Position.Y + Velocity.Y);
+            Life--;
         }
     }
 }

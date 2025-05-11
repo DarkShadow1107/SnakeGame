@@ -14,7 +14,6 @@ namespace SnakeGame
         public Color FoodColor { get; }
         public Color WallColor { get; }
         public DashStyle WallDashStyle { get; }
-        // Optionally, you can add a secondary wall color for glow/highlight if you want more customization
 
         public Theme(
             string name,
@@ -47,7 +46,7 @@ namespace SnakeGame
                     Color.Black, true,
                     Color.YellowGreen, Color.LimeGreen, Color.Red,
                     null,
-                    Color.FromArgb(220, 120, 60), DashStyle.Solid // More vibrant brown
+                    Color.FromArgb(220, 120, 60), DashStyle.Solid
                 ),
                 new Theme(
                     "Neon Loop",
@@ -59,7 +58,7 @@ namespace SnakeGame
                     Color.BurlyWood, true,
                     Color.SaddleBrown, Color.Peru, Color.Orange,
                     null,
-                    Color.OrangeRed, DashStyle.Dot // Brighter wall
+                    Color.OrangeRed, DashStyle.Dot
                 ),
                 new Theme(
                     "Forest Loop",
@@ -71,14 +70,9 @@ namespace SnakeGame
                     Color.LightBlue, true,
                     Color.White, Color.LightCyan, Color.BlueViolet,
                     null,
-                    Color.DeepSkyBlue, DashStyle.Dash // More visible blue
+                    Color.DeepSkyBlue, DashStyle.Dash
                 ),
-                // Add more as desired
             };
         }
     }
-
-    // When calling Level.GetLevel, pass useBorderWalls = true for wall themes and for levels 2, 4, 5, 8, 9, 10.
-    // For example:
-    // Level.GetLevel(levelNumber, isWallThemeActive);
 }
